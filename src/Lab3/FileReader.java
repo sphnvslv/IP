@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 import java.text.ParseException;
 
 class FileReader {
+
     private SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
 
     public List<Pyrotechnics> readFromFile(String filename, PyrotechnicsList listStorage,

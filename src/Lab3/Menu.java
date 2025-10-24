@@ -1,7 +1,12 @@
 package Lab3;
 import java.util.*;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
+import java.util.Arrays;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 class Menu {
     private Scanner scanner;
@@ -12,6 +17,7 @@ class Menu {
 
     public Menu(PyrotechnicsList listStorage, PyrotechnicsMap mapStorage,
                 FileReader fileReader, FileWriter fileWriter) {
+
         this.scanner = new Scanner(System.in);
         this.listStorage = listStorage;
         this.mapStorage = mapStorage;
@@ -29,6 +35,13 @@ class Menu {
             System.out.println("5. Сортировка данных");
             System.out.println("6. Загрузить данные из файла");
             System.out.println("7. Сохранить данные в файл");
+
+            System.out.println("8. Запись в JSON");
+            System.out.println("9. Запись в XML");
+            System.out.println("10. Шифрование данных");
+            System.out.println("11. Создать архивы");
+            System.out.println("12. Чтение из JSON");
+            System.out.println("13. Чтение из XML");
             System.out.println("0. Выход");
             System.out.print("Выберите действие: ");
 
@@ -51,11 +64,177 @@ class Menu {
                  break;
                 case 7: saveToFile();
                  break;
+                case 8: exportToJSON();
+                break;
+                case 9: exportToXML();
+                break;
+                case 10: encryptData();
+                break;
+                case 11: createArchives();
+                break;
+                case 12: readFromJSON();
+                break;
+                case 13: readFromXML();
+                break;
                 case 0:
                     return;
                 default:
                     System.out.println("Неверный выбор");
             }
+        }
+    }
+
+    private void exportToJSON() {
+        try {
+            List<Pyrotechnics> items = listStorage.getItems();
+            if (items.isEmpty()) {
+                System.out.println("Нет данных для экспорта");
+                return;
+            }
+
+            List<String> tokens = new ArrayList<>();
+            List<Double> numbers = new ArrayList<>();
+
+
+            for (Pyrotechnics item : items) {
+                tokens.add(item.getType() + " - " + item.getModel());
+                numbers.add(item.getPower());
+                numbers.add((double) item.getMaxHeight());
+                numbers.add(item.getPrice());
+            }
+
+            String result = "Экспорт данных пиротехники: " + items.size() + " единиц";
+            JSONProcessor.writeToJSON("pyrotechnics.json", tokens, numbers, new ArrayList<>(), result);
+            System.out.println("Данные экспортированы в pyrotechnics.json (" + items.size() + " единиц)");
+
+        } catch (Exception e) {
+            System.out.println("Ошибка экспорта в JSON: " + e.getMessage());
+        }
+    }
+
+    private void exportToXML() {
+        try {
+            List<Pyrotechnics> items = listStorage.getItems();
+            if (items.isEmpty()) {
+                System.out.println("Нет данных для экспорта!");
+                return;
+            }
+
+            List<String> tokens = new ArrayList<>();
+            List<Double> numbers = new ArrayList<>();
+
+            for (Pyrotechnics item : items) {
+                tokens.add(item.getId() + ":" + item.getType() + ":" + item.getModel());
+                numbers.add(item.getPower());
+                numbers.add((double) item.getMaxHeight());
+                numbers.add(item.getPrice());
+            }
+
+            String result = "Данные о пиротехнике: " + items.size() + " позиций";
+            XMLProcessor.writeToXML("pyrotechnics.xml", tokens, numbers, new ArrayList<>(), result);
+            System.out.println("Данные экспортированы в pyrotechnics.xml (" + items.size() + " позиций)");
+
+        } catch (Exception e) {
+            System.out.println("Ошибка экспорта в XML: " + e.getMessage());
+        }
+    }
+
+    private void encryptData() {
+        try {
+            List<Pyrotechnics> items = listStorage.getItems();
+            if (items.isEmpty()) {
+                System.out.println("Нет данных для шифрования!");
+                return;
+            }
+
+
+            StringBuilder dataBuilder = new StringBuilder();
+            dataBuilder.append("=== ДАННЫЕ ПИРОТЕХНИКИ ===\n\n");
+            for (Pyrotechnics item : items) {
+                dataBuilder.append(String.format(
+                        "ID: %s\nТип: %s\nМодель: %s\nМощность: %.2f\nВысота: %dм\nЦена: %.2f\nДата: %s\n\n",
+                        item.getId(), item.getType(), item.getModel(),
+                        item.getPower(), item.getMaxHeight(), item.getPrice(),
+                        new SimpleDateFormat("dd.MM.yyyy").format(item.getProductionDate())
+                ));
+            }
+
+            String originalData = dataBuilder.toString();
+            String encrypted = CryptoProcessor.encrypt(originalData);
+            String decrypted = CryptoProcessor.decrypt(encrypted);
+
+
+            StringBuilder resultFile = new StringBuilder();
+            resultFile.append("=== Шифрование данных ===\n\n");
+            resultFile.append("Исходные:\n").append(originalData).append("\n");
+            resultFile.append("Зашифрованные:\n").append(encrypted).append("\n\n");
+            resultFile.append("Расшифрованные:\n").append(decrypted).append("\n\n");
+            resultFile.append("Статус: ").append(originalData.equals(decrypted) ? "Шифрование работает корректно" : "Ошибка шифрования");
+
+            Files.write(Paths.get("encryption_results.txt"), resultFile.toString().getBytes());
+
+            System.out.println("=== Шифрование завершено ===");
+            System.out.println("Все данные сохранены в: encryption_results.txt");
+            System.out.println("Обработано: " + items.size() + " единиц пиротехники");
+            System.out.println("Статус: " + (originalData.equals(decrypted) ? "Шифрование работает корректно" : "Ошибка шифрования"));
+
+        } catch (Exception e) {
+            System.out.println("Ошибка шифрования: " + e.getMessage());
+        }
+    }
+
+    private void createArchives() {
+        try {
+            exportToJSON();
+            exportToXML();
+
+            ArchiveProcessor.createZipArchive("pyrotechnics.json", "pyrotechnics_data.zip");
+            ArchiveProcessor.createJarArchive("pyrotechnics.xml", "pyrotechnics_data.jar");
+
+            System.out.println("=== Архивы созданы ===");
+            System.out.println("ZIP архив с данными: pyrotechnics_data.zip");
+            System.out.println("JAR архив с данными: pyrotechnics_data.jar");
+
+        } catch (Exception e) {
+            System.out.println("Ошибка архивации: " + e.getMessage());
+        }
+    }
+
+    private void readFromJSON() {
+        try {
+            System.out.println("=== ЧТЕНИЕ ИЗ JSON ===");
+
+            BufferedReader reader = new BufferedReader(new java.io.FileReader("pyrotechnics.json"));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            }
+            reader.close();
+
+        } catch (FileNotFoundException e) {
+            System.out.println("Файл pyrotechnics.json не найден!");
+            System.out.println("Сначала выполните экспорт в JSON (пункт 8)");
+        } catch (Exception e) {
+            System.out.println("Ошибка чтения JSON: " + e.getMessage());
+        }
+    }
+
+    private void readFromXML() {
+        try {
+            System.out.println("=== ЧТЕНИЕ ИЗ XML ===");
+
+            BufferedReader reader = new BufferedReader(new java.io.FileReader("pyrotechnics.xml"));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            }
+            reader.close();
+
+        } catch (FileNotFoundException e) {
+            System.out.println("Файл pyrotechnics.xml не найден!");
+            System.out.println("Сначала выполните экспорт в XML (пункт 9)");
+        } catch (Exception e) {
+            System.out.println("Ошибка чтения XML: " + e.getMessage());
         }
     }
 

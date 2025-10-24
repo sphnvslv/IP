@@ -3,6 +3,7 @@ import java.util.*;
 import java.text.SimpleDateFormat;
 
 class FileWriter {
+
     private SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
 
     public void writeToFile(String filename, PyrotechnicsList storage) {

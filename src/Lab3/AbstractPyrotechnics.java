@@ -9,6 +9,7 @@ abstract class AbstractPyrotechnics {
     public abstract Date getProductionDate();
     public abstract double getPrice();
 
+
     public abstract void setId(String id);
     public abstract void setType(String type);
     public abstract void setModel(String model);

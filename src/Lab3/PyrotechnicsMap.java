@@ -31,6 +31,7 @@ class PyrotechnicsMap extends AbstractStorage<Pyrotechnics> {
         }
     }
 
+
     public Map<String, Pyrotechnics> getSortedByPrice() {
         Map<String, Pyrotechnics> sortedMap = new TreeMap<>(
                 (id1, id2) -> Double.compare(itemsMap.get(id1).getPrice(), itemsMap.get(id2).getPrice())

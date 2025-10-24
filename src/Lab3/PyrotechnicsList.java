@@ -8,6 +8,7 @@ class PyrotechnicsList extends AbstractStorage<Pyrotechnics> {
         items.add(item);
     }
 
+
     @Override
     public void removeItem(String id) {
         items.removeIf(item -> item.getId().equals(id));

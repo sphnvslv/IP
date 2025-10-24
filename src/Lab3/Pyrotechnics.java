@@ -75,6 +75,7 @@ class Pyrotechnics extends AbstractPyrotechnics {
     public void setProductionDate(Date productionDate) {
         this.productionDate = productionDate;
     }
+
     @Override
     public void setPrice(double price) {
         this.price = price;
